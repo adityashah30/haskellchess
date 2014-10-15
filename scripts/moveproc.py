@@ -88,7 +88,7 @@ def main():
             root = root.check_membership(move)
     tree_str = (tree_str[:-2]+"]")
     print tree_str
-    with open('../data/opening_book_tree', 'w') as fp:
+    with open('../data/opening_book_tree.dat', 'w') as fp:
         fp.write(tree_str)
 
 
