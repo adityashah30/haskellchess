@@ -153,7 +153,6 @@ uci = do
                     Nothing -> return ()
                     Just cmd -> do 
                                     responses <- getResponse cmd
-                                    appendFile "data/ucimoves.dat" (show responses)
                                     let output = intercalate "\n" $ map show responses
                                     putStrLn output
                 dialogue
