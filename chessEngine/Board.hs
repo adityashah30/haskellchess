@@ -9,7 +9,6 @@ type Board = [[PieceOnSquare]]
 
 type Pos = (Int, Int)
 
-
 -- PieceColor indicates whose turn it is
 type BoardState = (PieceColor, Board)
 

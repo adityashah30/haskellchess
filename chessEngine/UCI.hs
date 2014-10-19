@@ -89,15 +89,16 @@ uciPositionParser = do
     parserMoveList gameState = do
       mm <- optionMaybe (spaces >> parserMove)
       case mm of
-        Just (from, to)  -> parserMoveList $ makeMove gameState (from,to)
+        Just (from, to)  -> parserMoveList $ makeMove gameState (from, to)
         Nothing -> return gameState
 
 -- | On a given board parses an UCI protocol style move notation into Move
 parserMove :: Parser (Pos,Pos)
 parserMove = do
-	from <- parserSquare
-	to <- parserSquare
-	return (from, to)
+  from <- parserSquare
+  to <- parserSquare
+  queen <- parserQueen
+  return (from, to)
 
 -- | The parser for 'a1' etc notation
 parserSquare :: Parser Pos
@@ -106,6 +107,10 @@ parserSquare = do
   y <- oneOf ['1' .. '8']
   return (7 - (ord y - ord '1'), ord x - ord 'a')
 
+parserQueen :: Parser Char
+parserQueen = do
+  q <- string "q" <|> string ""
+  return 'q'
 
 uciCmdParser :: Parser Command
 uciCmdParser = try uciNewGameParser
@@ -128,19 +133,27 @@ genMoveString b (x1, y1) (x2, y2)
 		| isEmpty b (x2, y2) = [chr (y2 + ord 'a'), chr (ord '8' - x2)] ++ [chr (y1 + ord 'a'), chr (ord '8' - x1)]
 
 
+logFilePath::FilePath
+logFilePath = "../data/log.txt"
+
 -- | The main IO () UCI loop. Talks to an UCI interface and drives the engine
 uci :: IO ()
 uci = do
+    writeToFile logFilePath ""
     hSetBuffering stdout NoBuffering
     lastGameState <- newIORef initialGameState
 
     let dialogue = do
                 line <- getLine
+                appendToFile logFilePath "XBoard:"
+                appendToFile logFilePath line
                 case parseCommand line of
                     Nothing -> return ()
                     Just cmd -> do 
                                     responses <- getResponse cmd
                                     let output = intercalate "\n" $ map show responses
+                                    appendToFile logFilePath "Engine:"
+                                    appendToFile logFilePath output
                                     putStrLn output
                 dialogue
                 where
@@ -151,6 +164,7 @@ uci = do
                     getResponse CmdStop = return []
                     getResponse (CmdPosition gs) = do
                       modifyIORef lastGameState (const gs)
+                      --displayGame gs
                       return []
                     getResponse (CmdGo _) = do
                       g <- readIORef lastGameState
