@@ -94,6 +94,9 @@ hasSameColor sqr1 sqr2 = (getColor sqr1) == (getColor sqr2)
 validateSquareForKnight::Board->PieceOnSquare->Pos->Bool
 validateSquareForKnight board sqr pos = (isEmpty board pos)||(hasOppColor sqr (getPieceOnSquare board pos))
 
+isPromotionPossible::Board -> Board -> Pos -> Pos -> Bool
+isPromotionPossible b1 b2 (fromx, fromy) (tox, toy) = or [and[(getPiece(getPieceOnSquare b1 (fromx, fromy))==(Piece Pawn Black)), fromx==6, (getPiece(getPieceOnSquare b2 (tox, toy))==(Piece Queen Black)), tox==7], and[(getPiece(getPieceOnSquare b1 (fromx, fromy))==(Piece Pawn White)), fromx==1, (getPiece(getPieceOnSquare b2 (tox, toy))==(Piece Queen White)), tox==0]]
+
 
 -- computes the representation of "a1:h8"
 

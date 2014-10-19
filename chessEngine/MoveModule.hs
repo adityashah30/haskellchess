@@ -4,8 +4,15 @@ import Data.List
 import Data.Char
 import Board
 
-genMoveString :: Board->Pos->Pos->String
-genMoveString b (x1, y1) (x2, y2)
+genMoveString :: Board->Board->Pos->Pos->String
+genMoveString b1 b2 (x1, y1) (x2, y2)
+        | isEmpty b2 (x1, y1) = if (isPromotionPossible b1 b2 (x1,y1) (x2,y2)) then mstring1++"q" else mstring1
+        | isEmpty b2 (x2, y2) = if (isPromotionPossible b1 b2 (x2,y2) (x1,y1)) then mstring2++"q" else mstring2
+        where mstring1 = [chr (y1 + ord 'a'), chr (ord '8' - x1)] ++ [chr (y2 + ord 'a'), chr (ord '8' - x2)]
+              mstring2 = [chr (y2 + ord 'a'), chr (ord '8' - x2)] ++ [chr (y1 + ord 'a'), chr (ord '8' - x1)]
+
+genMoveStringOld :: Board->Pos->Pos->String
+genMoveStringOld b (x1, y1) (x2, y2)
         | isEmpty b (x1, y1) = [chr (y1 + ord 'a'), chr (ord '8' - x1)] ++ [chr (y2 + ord 'a'), chr (ord '8' - x2)]
         | isEmpty b (x2, y2) = [chr (y2 + ord 'a'), chr (ord '8' - x2)] ++ [chr (y1 + ord 'a'), chr (ord '8' - x1)]
 
@@ -20,7 +27,8 @@ genMovesString b1 b2 =
         pos1 = (p1 `div` 8, p1 `rem` 8)
         pos2 = (p2 `div` 8, p2 `rem` 8)
         m = if length indices == 2 then
-            genMoveString (snd b2) pos1 pos2
+            genMoveString (snd b1) (snd b2) pos1 pos2
+            --genMoveStringOld (snd b2) pos1 pos2
         else
             case indices!!0 of
                 0 -> "e1c1"

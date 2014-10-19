@@ -127,11 +127,6 @@ parseCommand line = case parse uciCmdParser "" line of
                 Left _ -> Nothing
                 Right cmd -> Just cmd
                 
-genMoveString :: Board->Pos->Pos->String
-genMoveString b (x1, y1) (x2, y2)
-		| isEmpty b (x1, y1) = [chr (y1 + ord 'a'), chr (ord '8' - x1)] ++ [chr (y2 + ord 'a'), chr (ord '8' - x2)]
-		| isEmpty b (x2, y2) = [chr (y2 + ord 'a'), chr (ord '8' - x2)] ++ [chr (y1 + ord 'a'), chr (ord '8' - x1)]
-
 
 logFilePath::FilePath
 logFilePath = "../data/log.txt"
