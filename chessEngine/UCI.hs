@@ -20,6 +20,7 @@ import           Board
 import           Search
 import		       Pieces
 import           FileModule
+import MoveModule
 
 
 data SearchOption = MovetimeMsc Int | Infinity deriving (Show)
@@ -91,19 +92,19 @@ uciPositionParser = do
     parserMoveList gameState = do
       mm <- optionMaybe (spaces >> parserMove)
       case mm of
-        Just (from, to)  -> parserMoveList $ makeMove gameState from to
+        Just (from, to)  -> parserMoveList $ makeMove gameState (from,to)
         Nothing -> return gameState
 
-makeMove :: GameState->Pos->Pos->GameState
-makeMove gs p1 p2 =
-		let	currBoardState = fst gs
-			history = snd gs
-			c = fst currBoardState
-			b = snd currBoardState
-			b' = movePiece b p1 p2
-			c' = oppositeColor c
-			gs' = ((c', b'), history++[currBoardState])
-		in gs'
+--makeMove :: GameState->Pos->Pos->GameState
+--makeMove gs p1 p2 =
+--		let	currBoardState = fst gs
+--			history = snd gs
+--			c = fst currBoardState
+--			b = snd currBoardState
+--			b' = movePiece b p1 p2
+--			c' = oppositeColor c
+--			gs' = ((c', b'), history++[currBoardState])
+--		in gs'
 
 -- | On a given board parses an UCI protocol style move notation into Move
 parserMove :: Parser (Pos,Pos)
@@ -171,7 +172,7 @@ uci = do
                       -- writeIORef lastPosition p'
                       let	bs = getNextState g
                       --displayBoard (snd bs)
-                      let m = genOpenBookMoves (fst g) bs
+                      let m = genMovesString (fst g) bs
                       return [ RspBestMove m ]
 		      		--b1 = snd (fst g)
 		      		--b2 = snd bs
