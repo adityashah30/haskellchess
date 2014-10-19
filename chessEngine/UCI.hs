@@ -12,15 +12,12 @@ import           System.IO
 
 import           Text.ParserCombinators.Parsec
 
-import Debug.Trace
-
-import OpenBookParser
 import           Evaluator
 import           Board
 import           Search
 import		       Pieces
 import           FileModule
-import MoveModule
+import           MoveModule
 
 
 data SearchOption = MovetimeMsc Int | Infinity deriving (Show)
@@ -95,17 +92,6 @@ uciPositionParser = do
         Just (from, to)  -> parserMoveList $ makeMove gameState (from,to)
         Nothing -> return gameState
 
---makeMove :: GameState->Pos->Pos->GameState
---makeMove gs p1 p2 =
---		let	currBoardState = fst gs
---			history = snd gs
---			c = fst currBoardState
---			b = snd currBoardState
---			b' = movePiece b p1 p2
---			c' = oppositeColor c
---			gs' = ((c', b'), history++[currBoardState])
---		in gs'
-
 -- | On a given board parses an UCI protocol style move notation into Move
 parserMove :: Parser (Pos,Pos)
 parserMove = do
@@ -171,19 +157,6 @@ uci = do
                       -- (pv, p') <- runSearch (search 4) p
                       -- writeIORef lastPosition p'
                       let	bs = getNextState g
-                      --displayBoard (snd bs)
                       let m = genMovesString (fst g) bs
                       return [ RspBestMove m ]
-		      		--b1 = snd (fst g)
-		      		--b2 = snd bs
-		      		--b11 = concat b1
-		      		--b22 = concat b2
-			      	--z = zip b11 b22
-			      	--indices = findIndices (\(a,b)->a/=b) z
-			      	--p1 = indices!!0
-			      	--p2 = indices!!1
-			      	--pos1 = (p1 `div` 8, p1 `rem` 8)
-			      	--pos2 = (p2 `div` 8, p2 `rem` 8)
-			      	--m = genMoveString b2 pos1 pos2
-                      --return [ RspBestMove m ]
     dialogue

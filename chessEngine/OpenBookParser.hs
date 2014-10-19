@@ -1,7 +1,5 @@
 module OpenBookParser where
 
-import Data.List
-import Data.Char
 import OpeningBook
 import Board
 import MoveModule
