@@ -36,6 +36,9 @@ parseMove str =  (pos1, pos2)
                         pos1 = getIndex ([str!!0] ++ [str!!1])
                         pos2 = getIndex ([str!!2] ++ [str!!3])
 
+getIndex::String -> Pos
+getIndex str = (ord '8' - ord (str!!1), ord (str!!0) - ord 'a')
+
 indexofMove::String -> Pos
 indexofMove str = (a,b)
                 where

@@ -63,9 +63,6 @@ replaceAtIndex n item ls = a ++ (item:b) where (a, (_:b)) = splitAt n ls
 
 -- **************** board functions *******************
 
-getIndex::String -> Pos
-getIndex str = (ord '8' - ord (str!!1), ord (str!!0) - ord 'a')
-
 isEmpty::Board->Pos->Bool
 isEmpty board pos = Nothing == getPieceOnSquare board pos
 
