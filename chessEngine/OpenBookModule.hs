@@ -6,8 +6,7 @@ import Board
 import MoveModule
 import FileModule
 
---Every move represented by a 4-tuple (ID, Parent, Black, White).
---This Opening book represents 18 variations of the Queen's Gambit
+--Every move represented by a 4-tuple (ID, Parent, White, Black).
 --Black king side castling: e8g8
 --Black queen side castling: e8c8
 --White king side castling: e1g1
