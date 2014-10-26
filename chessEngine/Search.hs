@@ -3,7 +3,7 @@ module Search where
 import Board
 import Pieces
 import Evaluator
-import OpenBookParser
+import OpenBookModule
 
 data GameTree = GameTree {state::BoardState, children::[GameTree]}
 

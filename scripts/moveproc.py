@@ -74,22 +74,25 @@ def sanitize_data(olddata):
     return data
 
 def main():
-    with open('../data/openingbook.txt') as fp:
-        data = sanitize_data([[j.strip() for j in i.strip().split("\n")] for i in fp.read().split(";") if i])
-    tree = Node(-1, ['0', '0'], None)
-    global counter
-    global tree_str
-    tree_str = "["
-    counter = 0
-    for game in data:
-        root = tree
-        for move in game:
-            move = move.split()
-            root = root.check_membership(move)
-    tree_str = (tree_str[:-2]+"]")
-    print tree_str
-    with open('../data/opening_book_tree.dat', 'w') as fp:
-        fp.write(tree_str)
+    book_ = ['../data/openbook.txt']
+    tree_ = ['../data/open_book_tree.dat']
+    for b, t in zip (book_, tree_):
+        with open(b) as fp:
+            data = [[j.strip() for j in i.strip().split("\n")] for i in fp.read().split(";") if i]
+        tree = Node(-1, ['0', '0'], None)
+        global counter
+        global tree_str
+        tree_str = "["
+        counter = 0
+        for game in data:
+            root = tree
+            for move in game:
+                move = move.split()
+                root = root.check_membership(move)
+        tree_str = (tree_str[:-2]+"]")
+        print tree_str
+        with open(t, 'w') as fp:
+            fp.write(tree_str)
 
 
 if __name__ == "__main__":

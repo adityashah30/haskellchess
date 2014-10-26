@@ -1,0 +1,29 @@
+
+XBoard:
+uci
+Engine:
+id name Chess
+id author Aditya-Shivaram-Nitin-Anish
+uciok
+XBoard:
+
+XBoard:
+isready
+Engine:
+readyok
+XBoard:
+ucinewgame
+Engine:
+
+XBoard:
+go
+Engine:
+bestmove c2c4
+XBoard:
+position startpos moves c2c4 d2d4
+Engine:
+
+XBoard:
+go
+Engine:
+bestmove d1a4

@@ -4,6 +4,7 @@ import Data.List
 import Data.Char
 import Board
 
+--Given two Board configurations and from and to positions, generate the moveString.
 genMoveString :: Board->Board->Pos->Pos->String
 genMoveString b1 b2 (x1, y1) (x2, y2)
         | isEmpty b2 (x1, y1) = if (isPromotionPossible b1 b2 (x1,y1) (x2,y2)) then mstring1++"q" else mstring1
@@ -11,11 +12,13 @@ genMoveString b1 b2 (x1, y1) (x2, y2)
         where mstring1 = [chr (y1 + ord 'a'), chr (ord '8' - x1)] ++ [chr (y2 + ord 'a'), chr (ord '8' - x2)]
               mstring2 = [chr (y2 + ord 'a'), chr (ord '8' - x2)] ++ [chr (y1 + ord 'a'), chr (ord '8' - x1)]
 
+--Old foo to generate moveString. Doesn't consider pawn promotion.
 genMoveStringOld :: Board->Pos->Pos->String
 genMoveStringOld b (x1, y1) (x2, y2)
         | isEmpty b (x1, y1) = [chr (y1 + ord 'a'), chr (ord '8' - x1)] ++ [chr (y2 + ord 'a'), chr (ord '8' - x2)]
         | isEmpty b (x2, y2) = [chr (y2 + ord 'a'), chr (ord '8' - x2)] ++ [chr (y1 + ord 'a'), chr (ord '8' - x1)]
 
+--Given two boardstates, generate the movesString using genMoveString.
 genMovesString::BoardState -> BoardState -> String
 genMovesString b1 b2 = 
     let b11 = concat $ snd b1
@@ -37,15 +40,18 @@ genMovesString b1 b2 =
                 _ -> "e8g8"
     in m
 
+--Convert moveString to tuple of positions (from, to)
 parseMove:: String -> (Pos,Pos)
-parseMove "Not Found" = ((-1,-1) , (-1,-1))
+parseMove "NULL" = ((-1,-1) , (-1,-1))
 parseMove str =  (pos1, pos2)
                     where
                         pos1 = getIndex ([str!!0] ++ [str!!1])
                         pos2 = getIndex ([str!!2] ++ [str!!3])
 
+--Convert rank and file to row and column,
 getIndex::String -> Pos
 getIndex str = (ord '8' - ord (str!!1), ord (str!!0) - ord 'a')
+
 
 indexofMove::String -> Pos
 indexofMove str = (a,b)
@@ -53,6 +59,7 @@ indexofMove str = (a,b)
                     b = (ord (str!!0) - ord 'a')
                     a = (7  - ord (str!!1) - ord '0' -1)
 
+--Given a gamestate, make the move and update history and currBoard.
 makeMove :: GameState->(Pos, Pos)->GameState
 makeMove gs ((-1,-1) , (-1,-1)) = gs
 makeMove gs (p1,p2) =
@@ -65,6 +72,7 @@ makeMove gs (p1,p2) =
             gs' = ((c', b'), history++[currBoardState])
         in gs'
 
+--Update gamestate using movesString.
 playGameUsingHistory::GameState -> [String] -> GameState
 playGameUsingHistory gs  [] = gs
 playGameUsingHistory gs  (move:moves) = playGameUsingHistory (makeMove gs (parseMove move)) moves
