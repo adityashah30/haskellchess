@@ -105,8 +105,8 @@ convertToOddTuple x = (convertToEvenTuple x, last x)
 --Given a movesString, get the next move to be played.
 getNextMove::[String] -> String
 getNextMove moves = case (length moves `mod` 2) of 
-                        1 -> snd$getNextOddChild$convertToOddTuple$moves
                         0 -> fst$getNextEvenChild$convertToEvenTuple$moves
+                        1 -> snd$getNextOddChild$convertToOddTuple$moves
 
 --Given a gamestate, generate the movesString.
 historyParser::GameState -> [String]
