@@ -29,8 +29,14 @@ genMovesString b1 b2 =
         p2 = indices!!1
         pos1 = (p1 `div` 8, p1 `rem` 8)
         pos2 = (p2 `div` 8, p2 `rem` 8)
+        p3 = indices!!2
+        pos3 = (p3 `div` 8, p3 `rem` 8)
+        to = getEnpassantToMove [pos1, pos2, pos3]
+        from = getEnpassantFromMove to [pos1, pos2, pos3]
         m = if length indices == 2 then
             genMoveString (snd b1) (snd b2) pos1 pos2
+        else if length indices == 3 then
+            genMoveString (snd b1) (snd b2) to from
             --genMoveStringOld (snd b2) pos1 pos2
         else
             case indices!!0 of
@@ -39,6 +45,16 @@ genMovesString b1 b2 =
                 56 ->"e8c8"
                 _ -> "e8g8"
     in m
+    
+
+
+getEnpassantToMove::[(Int, Int)] -> (Int, Int)
+getEnpassantToMove [] = (-1,-1)
+getEnpassantToMove ((x,y):xs) = if or [x==2, x==5] then (x,y) else getEnpassantToMove xs
+           
+getEnpassantFromMove::(Int, Int) -> [(Int, Int)] -> (Int, Int)
+getEnpassantFromMove to [] = (-1,-1)
+getEnpassantFromMove to ((x,y):xs) = if y/=snd(to) then (x,y) else getEnpassantFromMove to xs
 
 --Convert moveString to tuple of positions (from, to)
 parseMove:: String -> (Pos,Pos)
