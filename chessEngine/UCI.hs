@@ -86,16 +86,19 @@ uciPositionParser = do
   liftA CmdPosition (option gameState (gs posType gameState))
   where
     gs posType gameState = case posType of
-        "fen" ->  (spaces >> fenParser gameState)
+        "fen" ->  (spaces >> fenParser)
         "startpos" -> (string "moves" >> parserMoveList gameState)
     parserMoveList gameState = do
       mm <- optionMaybe (spaces >> parserMove)
       case mm of
         Just (from, to)  -> parserMoveList $ makeMove gameState (from, to)
         Nothing -> return gameState
-    fenParser gameState = do
+    fenParser = do
       bs <- fenBoardStateParser
-      return (bs, [(White, emptyBoard)])
+      spaces
+      let gs = (bs, [(oppositeColor$fst$bs, emptyBoard)])
+      newgs <- option gs (string "moves" >> parserMoveList gs)
+      return newgs
 
 fenBoardStateParser :: Parser BoardState
 fenBoardStateParser = do
