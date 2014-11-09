@@ -92,3 +92,5 @@ makeMove gs (p1,p2) =
 playGameUsingHistory::GameState -> [String] -> GameState
 playGameUsingHistory gs  [] = gs
 playGameUsingHistory gs  (move:moves) = playGameUsingHistory (makeMove gs (parseMove move)) moves
+
+--let moves = ["d2d4", "f7f5", "e2e3", "h7h5", "b1c3", "h5h4", "h2h3", "g7g5", "g2g4", "h4g3", "f2g3"]

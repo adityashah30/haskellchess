@@ -312,10 +312,16 @@ deletePieceOnSquare board p = updateBoard board p emptySquare
 movePiece::Board->Pos->Pos->Board
 movePiece b p1 p2
 	| ((x2==7)||(x2==0))&&(pieceType pc == Pawn) = updateBoard (deletePieceOnSquare b p1) p2 (pawnPromotion color)
+	| ((x1==3)||(x1==4))&&((y2==y1+1)||(y2==y1-1))&&((getPieceOnSquare b p2)==Nothing)&&(pieceType pc == Pawn) = updateBoard (deletePieceOnSquare (deletePieceOnSquare b p3) p1) p2 (getPieceOnSquare b p1)
 	| otherwise = updateBoard (deletePieceOnSquare b p1) p2 (getPieceOnSquare b p1)
 	where	x2 = fst p2
 		y2 = snd p2
+		x1 = fst p1
+		y1 = snd p1
 		pc = getPiece (getPieceOnSquare b p1)
+		p3 = case p1 of
+			(3, _) -> (3, y2)
+			(4, _) -> (4, y2)
 		color = pieceColor pc
 		
 pawnPromotion::PieceColor->PieceOnSquare
