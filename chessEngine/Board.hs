@@ -36,7 +36,7 @@ instance Show PieceType where
  show Bishop = "B"
  show Pawn = "P"
  
-{-instance Show Piece where
+instance Show Piece where
  show (Piece King Black) = "k"
  show (Piece Queen Black) = "q"
  show (Piece Knight Black) = "n"
@@ -48,7 +48,7 @@ instance Show PieceType where
  show (Piece Knight White) = "N"
  show (Piece Rook White) = "R"
  show (Piece Bishop White) = "B"
- show (Piece Pawn White) = "P"-}
+ show (Piece Pawn White) = "P"
  
 
 displayPieceOnSquare::PieceOnSquare->String

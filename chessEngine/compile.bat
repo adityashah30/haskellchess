@@ -1,0 +1,1 @@
+ghc -o chess.exe Main.hs -O2 -fforce-recomp

@@ -2,22 +2,20 @@ module UCI
        ( uci
        ) where
 
-import           Control.Applicative (liftA)
-import           Data.List
-import		 Data.Char
-import           Data.IORef
-import           System.Exit
-import           Data.Maybe
-import           System.IO
-
-import           Text.ParserCombinators.Parsec
-import           Evaluator
-import           Board
-import           Search
-import		       Pieces
-import           FileModule
-import           MoveModule
-
+import Control.Applicative (liftA)
+import Data.List
+import Data.Char
+import Data.IORef
+import System.Exit
+import Data.Maybe
+import System.IO
+import Text.ParserCombinators.Parsec
+import Evaluator
+import Board
+import Search
+import Pieces
+import FileModule
+import MoveModule
 
 data SearchOption = MovetimeMsc Int | Infinity deriving (Show)
                     

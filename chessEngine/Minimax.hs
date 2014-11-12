@@ -8,7 +8,7 @@ data GameTree = GameTree {state::BoardState, children::[GameTree]}
 
 -- maximal depth of the tree
 depth::Int
-depth = 3
+depth = 4
 
 prettyGameTree::GameTree->String
 prettyGameTree = prettyGameTree2 0
