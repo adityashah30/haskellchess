@@ -12,7 +12,7 @@ threshold = 900::Int
 
 --------Coefficients----------
 --In order: Material Strength, Central Squares, Diagonal Analysis, Connected Pawns
-coefficients = [10, 1, 2, 3]::[Int]
+coefficients = [10, 1, 1, 1]::[Int]
 ------------------------------
 
 valueOfPiece::PieceType->Int

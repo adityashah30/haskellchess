@@ -59,7 +59,7 @@ getNextState gs openingBook =
                   case (genGameTree depth gs) of
                   GameTree p [] -> p
                   --GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(minmax x, state x)) xs))
-                  GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(alphabeta x (-2000) (2000), state x)) xs))
+                  GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(alphabeta x (-20000) (20000), state x)) xs))
                   else
                     (fst newGs)
     where newGs = getStateOpenBook gs openingBook
