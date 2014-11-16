@@ -53,8 +53,8 @@ alphabeta (GameTree (Black, board) (x:xs)) a b
 flag:: Bool
 flag = True
 
-getNextState::GameState->BoardState
-getNextState gs = 
+getNextState::GameState->OpeningBook->BoardState
+getNextState gs openingBook = 
                 if newGs == gs then 
                   case (genGameTree depth gs) of
                   GameTree p [] -> p
@@ -62,7 +62,7 @@ getNextState gs =
                   GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(alphabeta x (-2000) (2000), state x)) xs))
                   else
                     (fst newGs)
-    where newGs = getStateOpenBook gs 
+    where newGs = getStateOpenBook gs openingBook
           compare White = (>)
           compare Black = (<)
 
@@ -84,18 +84,18 @@ winningState Black st = evalState st < -threshold
 
 -- *************************************************************************************
 
-playGame::GameState->Int->GameState
-playGame currGameState counter
-	| (counter == 1) = ((getNextState currGameState), updatedHistory)
-	| otherwise = playGame ((getNextState currGameState), updatedHistory) (counter-1)
+playGame::GameState->Int->OpeningBook->GameState
+playGame currGameState counter openingBook
+	| (counter == 1) = ((getNextState currGameState openingBook), updatedHistory)
+	| otherwise = playGame ((getNextState currGameState openingBook), updatedHistory) (counter-1) openingBook
 	where	currState = fst currGameState
 		history = snd currGameState
 		updatedHistory = history ++ [currState]
 		
-initializeGame::GameState->GameState
-initializeGame game =
+initializeGame::GameState->OpeningBook->GameState
+initializeGame game openingBook=
 	let	counter = 20
-	in playGame game counter
+	in playGame game counter openingBook
 	
 -- *************************************************************************************
 	

@@ -16,6 +16,7 @@ import Search
 import Pieces
 import FileModule
 import MoveModule
+import OpenBookModule
 
 data SearchOption = MovetimeMsc Int | Infinity deriving (Show)
                     
@@ -210,11 +211,11 @@ parseCommand line = case parse uciCmdParser "" line of
                 
 
 logFilePath::FilePath
-logFilePath = "../data/log.txt"
+logFilePath = "../data/log2.txt"
 
 -- | The main IO () UCI loop. Talks to an UCI interface and drives the engine
-uci :: IO ()
-uci = do
+uci :: OpeningBook -> IO ()
+uci openingBook = do
     writeToFile logFilePath ""
     hSetBuffering stdout NoBuffering
     lastGameState <- newIORef initialGameState
@@ -246,7 +247,7 @@ uci = do
                       g <- readIORef lastGameState
                       -- (pv, p') <- runSearch (search 4) p
                       -- writeIORef lastPosition p'
-                      let	bs = getNextState g
+                      let	bs = getNextState g openingBook
                       let m = genMovesString (fst g) bs
                       return [ RspBestMove m ]
     dialogue
