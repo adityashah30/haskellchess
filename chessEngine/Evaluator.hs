@@ -10,11 +10,11 @@ import Pieces
 infinity = 1000::Int
 threshold = 900::Int
 
---------Coefficients----------
---In order: Material Strength, Central Squares, Diagonal Analysis, Connected Pawns
+--------Evaluation Function Coefficients--------------
+--In order: Material Strength, Central Squares, Diagonal Analysis, Connected Pawns.
 coefficients = [10, 1, 1, 1]::[Int]
-------------------------------
 
+--------Material Strength Coefficients--------
 valueOfPiece::PieceType->Int
 valueOfPiece Pawn = 1
 valueOfPiece Rook = 5
@@ -30,6 +30,7 @@ addTuples [] = (0, 0)
 addTuples ((x,y):xs) = (x + fst a, y + snd a)
     where a = addTuples xs
 
+--Given a 3-tuple, return the second element.
 secondOf::(a,b,c) -> b
 secondOf (a, b, c) = b
 
@@ -44,10 +45,14 @@ isOnDiagonal::(Pos) -> Bool
 isOnDiagonal (pos1, pos2) = or [(pos1 == pos2), (pos1 == 7-pos2)]
 
 --------------Generic System for checking attacking pieces-------
+--Given a Board and a PieceOnSquare and an array of positions, return the number of times that 
+--PieceOnSquare if present on any of the positions.
 checkNumOfAttacks::Board -> PieceOnSquare -> [Pos] -> Int
 checkNumOfAttacks bs _ [] = 0
 checkNumOfAttacks bs posq (x:xs) = if(getPieceOnSquare bs x) == posq then (1+(checkNumOfAttacks bs posq xs)) else (checkNumOfAttacks bs posq xs)
 
+--Given a board and a Pos, PieceColor and PieceType, return the number of pieces of type Piecetype 
+--and color PieceColor that attack Pos.
 isSquareAttackedBy::Board -> (Pos, PieceColor) -> PieceType -> Int
 isSquareAttackedBy bs ((x, y), Black) Pawn = blacka + blackb
     where
@@ -61,6 +66,8 @@ isSquareAttackedBy bs ((x,y), pc) pt = checkNumOfAttacks bs (Just (Piece pt pc))
     where
         possiblePiecePos = genSemiValidMoves (updateBoard bs (x,y) (Just (Piece pt (oppositeColor pc)))) (x,y)
 
+--Given a board and position return an array containing information by attacks on the position
+--by Pawn, Bishop, Knight, Rook and Queen.
 calcNumAttacks::Board -> Pos -> [(Int, Int)]
 calcNumAttacks bs pos = [p, b, k, r, q]
     where
@@ -80,11 +87,12 @@ isSquareProtected::Board -> Pos -> PieceColor -> Bool
 isSquareProtected bs pos White = if sum(map fst (calcNumAttacks bs pos)) > 0 then True else False
 isSquareProtected bs pos Black = if sum(map snd (calcNumAttacks bs pos)) > 0 then True else False
 
---Filter all safe and Protected positions among all the positions
+--Filter all safe and Protected positions among all the positions.
 safePosList::Board -> [Pos] -> PieceColor -> [Pos]
 safePosList _ [] _ = []
 safePosList b (x:xs) pc = if ((isSquareSafe b x pc)||(isSquareProtected b x pc)) then ([x]++ (safePosList b xs pc)) else (safePosList b xs pc)
 
+--Given a Board, return an array of all position where Piece is present.
 getPiecePosInBoard::Board-> Piece -> [Pos]
 getPiecePosInBoard b p = secondOf (foldl searchPiece (0, [], p) (concat b))
 
@@ -94,12 +102,14 @@ searchPiece (x, y, p) (Just p1)    | p1==p = (x+1, y++[(x `div` 8, x `rem` 8)], 
                                    | otherwise = (x+1, y, p)
 
 --------------------- Connected Pawns ------------------
-
+--Given an array of pawn positions and a score, if an adjacent pawn is present in a connected manner,
+--then calculate further with the given score, else decrement the score and calculate further.
 getPawnBreaks::[Pos] -> Int -> Int
 getPawnBreaks [] num =  num
 getPawnBreaks (x : []) num =  num
 getPawnBreaks ((x1,x2):(y1,y2):xs) num = if((or [x1 == y1+1,x1==y1,x1==y1-1]) && (x2+1 == y2)) then (getPawnBreaks ((y1,y2):xs) num) else (getPawnBreaks ((y1,y2):xs) (num-1))
 
+--Given a Board, calculate the number of groups of connected pawn. 0<=score<=7.
 connectedPawnAnalysis::Board -> Int
 connectedPawnAnalysis bs = (pw-pb)
     where
@@ -108,18 +118,17 @@ connectedPawnAnalysis bs = (pw-pb)
         pw =  getPawnBreaks whitePawnPos 7
         pb =  getPawnBreaks blackPawnPos 7
 
+--The compare function used by sortBy. Orders positions by file.
 compareByFile::Pos -> Pos -> Ordering
 compareByFile (_,x2) (_,y2) | x2<=y2 = LT
                             | otherwise = GT
 
 --------------Central Square Analysis ----------------
-
 --Check the central squares for piece occupation
 checkCentralSquare::Board-> Pos -> (Int, Int)
 checkCentralSquare b pos | getColor (getPieceOnSquare b pos) == Right Black = (0, 1)
                          | getColor (getPieceOnSquare b pos) == Right White = (1, 0)
                          | otherwise = (0, 0)
-
 
 --Check the presence of pieces on central squares which are d4, d4, e4, e5
 centralSquareAnalysis::Board->Int

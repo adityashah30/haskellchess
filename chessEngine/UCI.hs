@@ -211,7 +211,7 @@ parseCommand line = case parse uciCmdParser "" line of
                 
 
 logFilePath::FilePath
-logFilePath = "../data/log2.txt"
+logFilePath = "../data/log.txt"
 
 -- | The main IO () UCI loop. Talks to an UCI interface and drives the engine
 uci :: OpeningBook -> IO ()
