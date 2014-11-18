@@ -8,7 +8,7 @@ import Pieces
 -- the threshold has to be infinity minus
 -- the maximal material value of one player
 infinity = 1000::Int
-threshold = 900::Int
+threshold = 9900::Int
 
 --------Evaluation Function Coefficients--------------
 --In order: Material Strength, Central Squares, Diagonal Analysis, Connected Pawns.

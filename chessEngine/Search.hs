@@ -9,7 +9,13 @@ data GameTree = GameTree {state::BoardState, children::[GameTree]}
 
 -- maximal depth of the tree
 depth::Int
-depth = 3
+depth = 4
+
+alpha::Int
+alpha = -20000
+
+beta::Int
+beta = 20000
 
 prettyGameTree::GameTree->String
 prettyGameTree = prettyGameTree2 0
@@ -59,7 +65,7 @@ getNextState gs openingBook =
                   case (genGameTree depth gs) of
                   GameTree p [] -> p
                   --GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(minmax x, state x)) xs))
-                  GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(alphabeta x (-20000) (20000), state x)) xs))
+                  GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(alphabeta x alpha beta, state x)) xs))
                   else
                     (fst newGs)
     where newGs = getStateOpenBook gs openingBook
