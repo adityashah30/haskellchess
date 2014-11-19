@@ -13,6 +13,7 @@ import Text.ParserCombinators.Parsec
 import Evaluator
 import Board
 import Search
+import Search2
 import Pieces
 import FileModule
 import MoveModule
