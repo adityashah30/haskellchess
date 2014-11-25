@@ -3,13 +3,17 @@ module Search where
 import Board
 import Pieces
 import Evaluator
+import MoveModule
 import OpenBookModule
 
 data GameTree = GameTree {state::BoardState, children::[GameTree]}
 
--- maximal depth of the tree
-depth::Int
-depth = 4
+-- maximal (treeDepth gs) of the tree
+treeDepth::GameState->Int
+treeDepth gs 
+        | numOpponentPieces <= 3 = 4
+        | otherwise = 4
+        where numOpponentPieces = length(positionsWithThisColor (oppositeColor$fst$fst$gs) (snd$fst$gs))
 
 alpha::Int
 alpha = -20000
@@ -62,7 +66,7 @@ flag = True
 getNextState::GameState->OpeningBook->BoardState
 getNextState gs openingBook = 
                 if newGs == gs then 
-                  case (genGameTree depth gs) of
+                  case (genGameTree (treeDepth gs) gs) of
                   GameTree p [] -> p
                   --GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(minmax x, state x)) xs))
                   GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(alphabeta x alpha beta, state x)) xs))
@@ -81,12 +85,11 @@ findBestNextState f cmp ((x1,y1):xs)
                                              
 
 finalState::BoardState->Bool
-finalState st = sw > threshold || sw < -threshold
-   where sw = evalState st
+finalState (pc,b) = (null (getNextColorMoves b pc)) 
 
 winningState::PieceColor->BoardState->Bool
-winningState White st = evalState st > threshold
-winningState Black st = evalState st < -threshold
+winningState pc bs = (null (getNextColorMoves (snd bs) pc))
+
 
 -- *************************************************************************************
 

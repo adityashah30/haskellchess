@@ -3,16 +3,12 @@ module Evaluator where
 import Data.List
 import Board
 import Pieces
-
--- The value of the king has to be infinity
--- the threshold has to be infinity minus
--- the maximal material value of one player
-infinity = 1000::Int
-threshold = 9900::Int
+import MoveModule
+import LearningModule
 
 --------Evaluation Function Coefficients--------------
---In order: Material Strength, Central Squares, Diagonal Analysis, Connected Pawns.
-coefficients = [10, 1, 1, 1]::[Int]
+--In order: Material Strength, Central Squares, Diagonal Analysis, Connected Pawns, Checkmate.
+coefficients = [10, 1, 1, 1, 10]::[Int]
 
 --------Material Strength Coefficients--------
 valueOfPiece::PieceType->Int
@@ -30,10 +26,6 @@ addTuples [] = (0, 0)
 addTuples ((x,y):xs) = (x + fst a, y + snd a)
     where a = addTuples xs
 
---Given a 3-tuple, return the second element.
-secondOf::(a,b,c) -> b
-secondOf (a, b, c) = b
-
 --Given two vectors, calculate the dot product.
 dotProduct::[Int] -> [Int] -> Int
 dotProduct [] _ = 0
@@ -43,63 +35,6 @@ dotProduct (x:xs) (y:ys) = (x*y) + (dotProduct xs ys)
 --Check of a given position lies on the diagonal.
 isOnDiagonal::(Pos) -> Bool
 isOnDiagonal (pos1, pos2) = or [(pos1 == pos2), (pos1 == 7-pos2)]
-
---------------Generic System for checking attacking pieces-------
---Given a Board and a PieceOnSquare and an array of positions, return the number of times that 
---PieceOnSquare if present on any of the positions.
-checkNumOfAttacks::Board -> PieceOnSquare -> [Pos] -> Int
-checkNumOfAttacks bs _ [] = 0
-checkNumOfAttacks bs posq (x:xs) = if(getPieceOnSquare bs x) == posq then (1+(checkNumOfAttacks bs posq xs)) else (checkNumOfAttacks bs posq xs)
-
---Given a board and a Pos, PieceColor and PieceType, return the number of pieces of type Piecetype 
---and color PieceColor that attack Pos.
-isSquareAttackedBy::Board -> (Pos, PieceColor) -> PieceType -> Int
-isSquareAttackedBy bs ((x, y), Black) Pawn = blacka + blackb
-    where
-        blacka = if and [validateBoundaryCondition (x-1, y-1), (getPieceOnSquare bs (x-1, y-1)) == Just(Piece Pawn Black)] then 1 else 0
-        blackb = if and [validateBoundaryCondition (x-1, y+1), (getPieceOnSquare bs (x-1, y+1)) == Just(Piece Pawn Black)] then 1 else 0
-isSquareAttackedBy bs ((x, y), White) Pawn = whitea + whiteb
-    where
-        whitea = if and [validateBoundaryCondition (x+1, y-1), (getPieceOnSquare bs (x+1, y-1)) == Just(Piece Pawn White)] then 1 else 0
-        whiteb = if and [validateBoundaryCondition (x+1, y+1), (getPieceOnSquare bs (x+1, y+1)) == Just(Piece Pawn White)] then 1 else 0
-isSquareAttackedBy bs ((x,y), pc) pt = checkNumOfAttacks bs (Just (Piece pt pc)) possiblePiecePos
-    where
-        possiblePiecePos = genSemiValidMoves (updateBoard bs (x,y) (Just (Piece pt (oppositeColor pc)))) (x,y)
-
---Given a board and position return an array containing information by attacks on the position
---by Pawn, Bishop, Knight, Rook and Queen.
-calcNumAttacks::Board -> Pos -> [(Int, Int)]
-calcNumAttacks bs pos = [p, b, k, r, q]
-    where
-        p = (isSquareAttackedBy bs (pos, White) Pawn, isSquareAttackedBy bs (pos, Black) Pawn)
-        b = (isSquareAttackedBy bs (pos, White) Bishop, isSquareAttackedBy bs (pos, Black) Bishop)
-        k = (isSquareAttackedBy bs (pos, White) Knight, isSquareAttackedBy bs (pos, Black) Knight)
-        r = (isSquareAttackedBy bs (pos, White) Rook, isSquareAttackedBy bs (pos, Black) Rook)
-        q = (isSquareAttackedBy bs (pos, White) Queen, isSquareAttackedBy bs (pos, Black) Queen)
-
---Check if a piece at pos (x,y) and piececolor pc is safe from oppsite colored pieces.
-isSquareSafe::Board -> Pos -> PieceColor -> Bool
-isSquareSafe bs pos White = if sum(map snd (calcNumAttacks bs pos)) == 0 then True else False
-isSquareSafe bs pos Black = if sum(map fst (calcNumAttacks bs pos)) == 0 then True else False
-
---Check if a piece at pos (x,y) and piececolor pc is protected by pieces of color piececolor.
-isSquareProtected::Board -> Pos -> PieceColor -> Bool
-isSquareProtected bs pos White = if sum(map fst (calcNumAttacks bs pos)) > 0 then True else False
-isSquareProtected bs pos Black = if sum(map snd (calcNumAttacks bs pos)) > 0 then True else False
-
---Filter all safe and Protected positions among all the positions.
-safePosList::Board -> [Pos] -> PieceColor -> [Pos]
-safePosList _ [] _ = []
-safePosList b (x:xs) pc = if ((isSquareSafe b x pc)||(isSquareProtected b x pc)) then ([x]++ (safePosList b xs pc)) else (safePosList b xs pc)
-
---Given a Board, return an array of all position where Piece is present.
-getPiecePosInBoard::Board-> Piece -> [Pos]
-getPiecePosInBoard b p = secondOf (foldl searchPiece (0, [], p) (concat b))
-
-searchPiece::(Int,[Pos],Piece)-> PieceOnSquare -> (Int,[Pos],Piece)
-searchPiece (x, y, p) Nothing = (x+1, y, p)
-searchPiece (x, y, p) (Just p1)    | p1==p = (x+1, y++[(x `div` 8, x `rem` 8)], p)
-                                   | otherwise = (x+1, y, p)
 
 --------------------- Connected Pawns ------------------
 --Given an array of pawn positions and a score, if an adjacent pawn is present in a connected manner,
@@ -145,10 +80,16 @@ centralSquareAnalysis b = (p1-p2)
 diagonalControlAnalysis::Board -> Int
 diagonalControlAnalysis b = (pw-pb)
     where      
-        pw = length (safePosList b diagw White)
-        pb = length (safePosList b diagb Black)
+        pw = length (safePosProtList b diagw White)
+        pb = length (safePosProtList b diagb Black)
         diagw = filter isOnDiagonal (getPiecePosInBoard b (Piece Bishop White))
         diagb = filter isOnDiagonal (getPiecePosInBoard b (Piece Bishop Black))
+
+---------------Dynamic Evaluation Scheme---------------------------
+dynamicEvalBoard::Board -> Int
+dynamicEvalBoard b = truncate$doubleVal
+    where
+        doubleVal = 10*(dynamicEval b loadKB)
 
 ------Board Material Analysis-----------------------------------
 boardMaterialAnalysis::Board -> (Int,Int)
@@ -159,11 +100,11 @@ boardMaterialAnalysis b = foldl addValue (0,0) (concat b)
 
 --Return the material strength of the board
 evalBoardMaterial::Board->Int
-evalBoardMaterial b = let (p1,p2) = boardMaterialAnalysis b in (p1-p2)
+evalBoardMaterial b = let (pw,pb) = boardMaterialAnalysis b in (pw-pb)
 
 -----------Main Evaluation function-------------------------------------
 applyCoeffs::[Int] -> Int
 applyCoeffs features = dotProduct features coefficients
 
 evalBoard::Board->Int
-evalBoard b = applyCoeffs [(evalBoardMaterial b), (centralSquareAnalysis b), (diagonalControlAnalysis b), (connectedPawnAnalysis b)]
+evalBoard b = applyCoeffs [(evalBoardMaterial b), (centralSquareAnalysis b), (diagonalControlAnalysis b), (connectedPawnAnalysis b), (checkMateEval b)]

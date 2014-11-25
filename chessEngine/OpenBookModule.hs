@@ -106,15 +106,25 @@ convertToOddTuple x = (convertToEvenTuple x, last x)
 
 --Given a movesString, get the next move to be played.
 getNextMove::[String] -> OpeningBook -> String
+getNextMove ["NULL"] _ = "NULL"
 getNextMove moves openingBook= case (length moves `mod` 2) of 
                         0 -> fst$getNextEvenChild (convertToEvenTuple$moves) openingBook
                         1 -> snd$getNextOddChild (convertToOddTuple$moves) openingBook
 
+--Given history check if the last board is an empty board (only possible if FEN is used).
+containsEmptyBoard::History -> Bool
+containsEmptyBoard [] = False
+containsEmptyBoard hs = if (snd$last$hs) == emptyBoard then True else False
+
 --Given a gamestate, generate the movesString.
+historyParser'::GameState -> [String]
+historyParser' (_, []) = []
+historyParser' (currBoard, x:[]) =  [genMovesString x currBoard]
+historyParser' (b, (x:y:xs)) = [(genMovesString x y)] ++ historyParser' (b, [y]++xs)
+
+--If board is FEN, don't use openBook hence return NULL else use historyParser'.
 historyParser::GameState -> [String]
-historyParser (_, []) = []
-historyParser (currBoard, x:[]) = [genMovesString x currBoard]
-historyParser (b, (x:y:xs)) = [(genMovesString x y)] ++ historyParser (b, [y]++xs)
+historyParser gs = if containsEmptyBoard$snd$gs then ["NULL"] else (historyParser' gs)
 
 --Given a gamestate, return the next gamestate.
 getStateOpenBook:: GameState -> OpeningBook -> GameState

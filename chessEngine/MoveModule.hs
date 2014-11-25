@@ -1,8 +1,10 @@
 module MoveModule where
 
 import Data.List
+import Data.List.Split
 import Data.Char
 import Board
+import Pieces
 
 --Given two Board configurations and from and to positions, generate the moveString.
 genMoveString :: Board->Board->Pos->Pos->String
@@ -45,13 +47,13 @@ genMovesString b1 b2 =
                 56 ->"e8c8"
                 _ -> "e8g8"
     in m
-    
 
-
+--Given a list of moves, determine the enpassant to move Pos.
 getEnpassantToMove::[(Int, Int)] -> (Int, Int)
 getEnpassantToMove [] = (-1,-1)
 getEnpassantToMove ((x,y):xs) = if or [x==2, x==5] then (x,y) else getEnpassantToMove xs
-           
+
+--Given a list of moves, determine the enpassant from move Pos.
 getEnpassantFromMove::(Int, Int) -> [(Int, Int)] -> (Int, Int)
 getEnpassantFromMove to [] = (-1,-1)
 getEnpassantFromMove to ((x,y):xs) = if y/=snd(to) then (x,y) else getEnpassantFromMove to xs
@@ -93,4 +95,34 @@ playGameUsingHistory::GameState -> [String] -> GameState
 playGameUsingHistory gs  [] = gs
 playGameUsingHistory gs  (move:moves) = playGameUsingHistory (makeMove gs (parseMove move)) moves
 
---let moves = ["d2d4", "f7f5", "e2e3", "h7h5", "b1c3", "h5h4", "h2h3", "g7g5", "g2g4", "h4g3", "f2g3"]
+--Given a gamestate, return all the list of boards except the initialBoard.
+getBoardsFromGameState::GameState -> [Board]
+getBoardsFromGameState (bs, history) = [snd$bs] ++ (map snd (init history))
+
+--Given a board, get a list of all possible next moves.
+getNextMoves::Board -> [(Piece, Pos, Pos)]
+getNextMoves b = (getNextColorMoves b White) ++ (getNextColorMoves b Black)
+
+--Given a board and color, generate all possible next moves for that color.
+getNextColorMoves::Board -> PieceColor -> [(Piece, Pos, Pos)]
+getNextColorMoves b pc = map (\(x, y, z) -> (getPiece x, y, z)) (filter (\(x, _, xs) -> if or[x==Nothing, getColor x == Right (oppositeColor pc)] then False else True) (concat$map (getNextMoveTuple b movesList) [(i,j) | i<-[0..7], j<-[0..7]]))
+            where
+                movesList = genValidMoves b
+
+--Given a board and a movesList(a list of moves for every cell on the board), and a position, return
+--a list of all the possible moves for that position.
+getNextMoveTuple::Board -> [[[Pos]]] -> Pos -> [(PieceOnSquare, Pos, Pos)]
+getNextMoveTuple b movesList (x,y) = getNextMovesTuple(getPieceOnSquare b (x,y), (x,y), movesList!!x!!y)
+
+--Given a piece, pos and a list of moves, expand the moves to generate (piece, frompos, topos) where to pos
+--belongs to the list of moves.
+--e.g (Piece Pawn Black, (1,0) [(2,0),(3,0)]) becomes [(Piece Pawn Black, (1,0), (2,0), (Piece Pawn Black, (1,0), (3,0)]
+getNextMovesTuple::(PieceOnSquare, Pos, [Pos]) -> [(PieceOnSquare, Pos, Pos)]
+getNextMovesTuple (p, pos, []) = []
+getNextMovesTuple (p, pos, (x:xs)) = [(p, pos, x)] ++ (getNextMovesTuple (p, pos, xs))
+
+--Given a moveString in xboard format, convert it to a list of strings
+--e.g "d2d4 e7e5 e2e4" becomes ["d2d4", "e7e5", "e2e4"]
+getMoveStringList::String -> [String]
+getMoveStringList [] = []
+getMoveStringList moves = splitOn " " moves

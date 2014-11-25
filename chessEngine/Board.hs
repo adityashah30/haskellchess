@@ -49,7 +49,26 @@ instance Show Piece where
  show (Piece Rook White) = "R"
  show (Piece Bishop White) = "B"
  show (Piece Pawn White) = "P"
- 
+
+instance Read Piece where
+    readsPrec _ value = 
+        tryParse [("k", Piece King Black), 
+        		  ("q", Piece Queen Black),
+        		  ("n", Piece Knight Black),
+        		  ("r", Piece Rook Black),
+        		  ("b", Piece Bishop Black),
+        		  ("p", Piece Pawn Black),
+        		  ("K", Piece King White),
+        		  ("Q", Piece Queen White),
+        		  ("N", Piece Knight White),
+        		  ("R", Piece Rook White),
+        		  ("B", Piece Bishop White),
+        		  ("P", Piece Pawn White)]
+        where tryParse [] = []
+              tryParse ((attempt, result):xs) =
+                      if (take (length attempt) value) == attempt
+                         then [(result, drop (length attempt) value)]
+                         else tryParse xs
 
 displayPieceOnSquare::PieceOnSquare->String
 displayPieceOnSquare Nothing = "-- "
@@ -464,6 +483,74 @@ getRandomNextState gs t =
 
 
 -- *************************************************************************************
+--------------Generic System for checking attacking pieces-------
+--Given a Board and a PieceOnSquare and an array of positions, return the number of times that 
+--PieceOnSquare if present on any of the positions.
+
+--Given a 3-tuple, return the second element.
+secondOf::(a,b,c) -> b
+secondOf (a, b, c) = b
+
+checkNumOfAttacks::Board -> PieceOnSquare -> [Pos] -> Int
+checkNumOfAttacks bs _ [] = 0
+checkNumOfAttacks bs posq (x:xs) = if(getPieceOnSquare bs x) == posq then (1+(checkNumOfAttacks bs posq xs)) else (checkNumOfAttacks bs posq xs)
+
+--Given a board and a Pos, PieceColor and PieceType, return the number of pieces of type Piecetype 
+--and color PieceColor that attack Pos.
+isSquareAttackedBy::Board -> (Pos, PieceColor) -> PieceType -> Int
+isSquareAttackedBy bs ((x, y), Black) Pawn = blacka + blackb
+    where
+        blacka = if and [validateBoundaryCondition (x-1, y-1), (getPieceOnSquare bs (x-1, y-1)) == Just(Piece Pawn Black)] then 1 else 0
+        blackb = if and [validateBoundaryCondition (x-1, y+1), (getPieceOnSquare bs (x-1, y+1)) == Just(Piece Pawn Black)] then 1 else 0
+isSquareAttackedBy bs ((x, y), White) Pawn = whitea + whiteb
+    where
+        whitea = if and [validateBoundaryCondition (x+1, y-1), (getPieceOnSquare bs (x+1, y-1)) == Just(Piece Pawn White)] then 1 else 0
+        whiteb = if and [validateBoundaryCondition (x+1, y+1), (getPieceOnSquare bs (x+1, y+1)) == Just(Piece Pawn White)] then 1 else 0
+isSquareAttackedBy bs ((x,y), pc) pt = checkNumOfAttacks bs (Just (Piece pt pc)) possiblePiecePos
+    where
+        possiblePiecePos = genSemiValidMoves (updateBoard bs (x,y) (Just (Piece pt (oppositeColor pc)))) (x,y)
+
+--Given a board and position return an array containing information by attacks on the position
+--by Pawn, Bishop, Knight, Rook and Queen.
+calcNumAttacks::Board -> Pos -> [(Int, Int)]
+calcNumAttacks bs pos = [p, b, k, r, q]
+    where
+        p = (isSquareAttackedBy bs (pos, White) Pawn, isSquareAttackedBy bs (pos, Black) Pawn)
+        b = (isSquareAttackedBy bs (pos, White) Bishop, isSquareAttackedBy bs (pos, Black) Bishop)
+        k = (isSquareAttackedBy bs (pos, White) Knight, isSquareAttackedBy bs (pos, Black) Knight)
+        r = (isSquareAttackedBy bs (pos, White) Rook, isSquareAttackedBy bs (pos, Black) Rook)
+        q = (isSquareAttackedBy bs (pos, White) Queen, isSquareAttackedBy bs (pos, Black) Queen)
+
+--Check if a piece at pos (x,y) and piececolor pc is safe from oppsite colored pieces.
+isSquareSafe::Board -> PieceColor -> Pos -> Bool
+isSquareSafe bs White pos= if sum(map snd (calcNumAttacks bs pos)) == 0 then True else False
+isSquareSafe bs Black pos= if sum(map fst (calcNumAttacks bs pos)) == 0 then True else False
+
+--Check if a piece at pos (x,y) and piececolor pc is protected by pieces of color piececolor.
+isSquareProtected::Board -> Pos -> PieceColor -> Bool
+isSquareProtected bs pos White = if sum(map fst (calcNumAttacks bs pos)) > 0 then True else False
+isSquareProtected bs pos Black = if sum(map snd (calcNumAttacks bs pos)) > 0 then True else False
+
+--Filter all safe and Protected positions among all the positions.
+safePosProtList::Board -> [Pos] -> PieceColor -> [Pos]
+safePosProtList _ [] _ = []
+safePosProtList b (x:xs) pc = if ((isSquareSafe b pc x)||(isSquareProtected b x pc)) then ([x]++ (safePosProtList b xs pc)) else (safePosProtList b xs pc)
+
+safePosList::Board -> [Pos] -> PieceColor -> [Pos]
+safePosList _ [] _ = []
+safePosList b (x:xs) pc = if (isSquareSafe b pc x) then ([x]++ (safePosList b xs pc)) else (safePosList b xs pc)
+
+
+--Given a Board, return an array of all position where Piece is present.
+getPiecePosInBoard::Board-> Piece -> [Pos]
+getPiecePosInBoard b p = secondOf (foldl searchPiece (0, [], p) (concat b))
+
+searchPiece::(Int,[Pos],Piece)-> PieceOnSquare -> (Int,[Pos],Piece)
+searchPiece (x, y, p) Nothing = (x+1, y, p)
+searchPiece (x, y, p) (Just p1)    | p1==p = (x+1, y++[(x `div` 8, x `rem` 8)], p)
+                                   | otherwise = (x+1, y, p)
+
+-- ************************************************************************************************
 
 -- initial boards
 
@@ -496,3 +583,35 @@ initialGameState::GameState
 initialGameState = (initialState, [])
 
 emptyBoard = [[Nothing|_<-[1..8]]|_<-[1..8]]
+
+exampleBoard2::Board
+exampleBoard2 = [[Nothing, Just (Piece Rook Black), Nothing, Nothing, Just (Piece King Black), Nothing, Nothing, Nothing],
+				[Just (Piece Queen Black), Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Just (Piece King White), Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]]
+
+exampleBoard3::Board
+exampleBoard3 = [[Nothing, Just (Piece Rook Black), Nothing, Nothing, Just (Piece King Black), Nothing, Nothing, Nothing],
+				[Just (Piece Queen Black), Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Just (Piece King White), Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Just(Piece Pawn White)],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]]
+
+falseBoard1::Board
+falseBoard1 = [[Nothing, Nothing, Nothing, Nothing, Just (Piece King Black), Nothing, Nothing, Nothing],
+				[Nothing, Just (Piece Rook Black), Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Just(Piece Queen Black), Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Just (Piece King White), Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]]
+
+
