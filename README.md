@@ -35,3 +35,13 @@ Notes
 	a. In order to install the package, execute the following command
 
 		sudo cabal install game-tree
+
+3. In order to load a position in xboard, do the following
+
+	a. Load the FEN file using File -> Load Position.
+
+	b. Make the move.
+
+	c. Now load the Engine from either Engine -> Load First Engine or from the recentEngineList under Engine.
+
+	d. Now if the engine is supposed to play Black, then choose Mode -> Machine Black else choose Mode -> Machine White.

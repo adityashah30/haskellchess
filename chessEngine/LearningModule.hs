@@ -81,7 +81,7 @@ isCheckMate::Board -> Bool
 isCheckMate b = or [null (getNextColorMoves b White), null (getNextColorMoves b Black)]
 
 checkMateEval::Board -> Int
-checkMateEval b = if (isCheckMate' b White) then checkMateVal else if (isCheckMate' b Black) then (-checkMateVal) else 0
+checkMateEval b = if (isCheckMate' b White) then (-checkMateVal) else if (isCheckMate' b Black) then checkMateVal else 0
 -------------------------------------------------------------------------------
 -----Helper Functions----------
 --Given two vectors, calculate the dot product.
