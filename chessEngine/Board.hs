@@ -586,7 +586,7 @@ emptyBoard = [[Nothing|_<-[1..8]]|_<-[1..8]]
 
 exampleBoard2::Board
 exampleBoard2 = [[Nothing, Just (Piece Rook Black), Nothing, Nothing, Just (Piece King Black), Nothing, Nothing, Nothing],
-				[Just (Piece Queen Black), Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+				[Nothing, Nothing, Just (Piece Queen Black), Nothing, Nothing, Nothing, Nothing, Nothing],
 				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
 				[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
 				[Just (Piece King White), Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],

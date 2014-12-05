@@ -71,12 +71,6 @@ getIndex::String -> Pos
 getIndex str = (ord '8' - ord (str!!1), ord (str!!0) - ord 'a')
 
 
-indexofMove::String -> Pos
-indexofMove str = (a,b)
-                where
-                    b = (ord (str!!0) - ord 'a')
-                    a = (7  - ord (str!!1) - ord '0' -1)
-
 --Given a gamestate, make the move and update history and currBoard.
 makeMove :: GameState->(Pos, Pos)->GameState
 makeMove gs ((-1,-1) , (-1,-1)) = gs

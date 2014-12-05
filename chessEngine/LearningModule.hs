@@ -8,7 +8,7 @@ import Pieces
 import FileModule
 import MoveModule
 
---Record is a 4-tuple with (HashString of Bi, count of Bi in KB, count of games won featuring Bi as White,count of games won featuring Bi as Black , [Next positions of Bi])
+--Record is a 4-tuple with (Board Bi, count of Bi in KB, count of games won featuring Bi as White,count of games won featuring Bi as Black , [Next positions of Bi])
 type Record = (Board, Double, Double, Double, Double)
 --KB is (Number of games played, number of boards in KB(can be nonunique))
 type KB = (Double, Double, [Record])
@@ -17,7 +17,7 @@ type KB = (Double, Double, [Record])
 --Used for king's posiition
 infinity = 1000::Int
 --Used for stalemate conditions
-staleMateVal = 1::Int
+staleMateVal = 2000::Int
 --Used for checkMate consitions
 checkMateVal = 2000::Int
 
@@ -75,13 +75,23 @@ getInBetweenPos (x1, y1) (x2, y2) Queen = (getInBetweenPos (x1, y1) (x2, y2) Roo
 --                otherPosList pc = validateKingCheck b pc
 --                otherPos pc = (otherPosList pc)!!0 
 isCheckMate'::Board -> PieceColor -> Bool
-isCheckMate' b pc = null (getNextColorMoves b pc)
+isCheckMate' b pc = and [null (getNextColorMoves b pc), not$null (validateKingCheck b pc)]
+
+isStaleMate'::Board -> PieceColor -> Bool
+isStaleMate' b pc = and [null (getNextColorMoves b pc), null (validateKingCheck b pc)]
 
 isCheckMate::Board -> Bool
-isCheckMate b = or [null (getNextColorMoves b White), null (getNextColorMoves b Black)]
+isCheckMate b = or [isCheckMate' b White, isCheckMate' b Black]
+
+isStaleMate::Board -> Bool
+isStaleMate b = or [isStaleMate' b White, isStaleMate' b Black]
 
 checkMateEval::Board -> Int
-checkMateEval b = if (isCheckMate' b White) then (-checkMateVal) else if (isCheckMate' b Black) then checkMateVal else 0
+checkMateEval b = if (isCheckMate' b White) then (-checkMateVal)
+                    else if (isCheckMate' b Black) then checkMateVal
+                        else if (isStaleMate' b White) then staleMateVal
+                            else if (isStaleMate' b Black) then (-staleMateVal)
+                                else 0
 -------------------------------------------------------------------------------
 -----Helper Functions----------
 --Given two vectors, calculate the dot product.

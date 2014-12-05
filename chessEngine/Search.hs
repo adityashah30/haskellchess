@@ -16,10 +16,10 @@ treeDepth gs
         where numOpponentPieces = length(positionsWithThisColor (oppositeColor$fst$fst$gs) (snd$fst$gs))
 
 alpha::Int
-alpha = -20000
+alpha = -40000
 
 beta::Int
-beta = 20000
+beta = 40000
 
 prettyGameTree::GameTree->String
 prettyGameTree = prettyGameTree2 0
@@ -33,15 +33,16 @@ evalState s = evalBoard (snd s)
 genGameTree::Int->GameState->GameTree
 genGameTree 0 (s, _) = GameTree s []
 genGameTree maxdepth (s, h)
-		| finalState s = GameTree s []
+		| finalState s = GameTree s []  --(genGameTree (maxdepth-1) (s, s:h))]
 		| otherwise = GameTree s (map (genGameTree (maxdepth-1)) nextGameStates)
 		where	nextGameStates = map (\bs->(bs, s:h)) (nextStatesAdvanced (s, h))
+
 
 -- minmax algorithm, computes value of best outcome
 minmax::GameTree->Int
 minmax (GameTree p []) = evalState p
-minmax (GameTree (White,_) xs) = maximum (map minmax xs)
-minmax (GameTree (Black,_) xs) = minimum (map minmax xs)
+minmax (GameTree (White,_) xs) = (maximum (map minmax xs)) `div` 2
+minmax (GameTree (Black,_) xs) = (minimum (map minmax xs)) `div` 2
 
 
 alphabeta::GameTree->Int->Int->Int
@@ -68,8 +69,8 @@ getNextState gs openingBook =
                 if newGs == gs then 
                   case (genGameTree (treeDepth gs) gs) of
                   GameTree p [] -> p
-                  --GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(minmax x, state x)) xs))
-                  GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(alphabeta x alpha beta, state x)) xs))
+                  GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(minmax x, state x)) xs))
+                  --GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(alphabeta x alpha beta, state x)) xs))
                   else
                     (fst newGs)
     where newGs = getStateOpenBook gs openingBook
