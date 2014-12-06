@@ -51,13 +51,13 @@ alphabeta (GameTree (White, board) [x]) a b = alphabeta x a b
 alphabeta (GameTree (White, board) (x:xs)) a b
 				| val >= b = val
 				| otherwise = max val (alphabeta (GameTree (White, board) xs) a' b)
-				where	val = alphabeta x a b
+				where	val = (alphabeta x a b) `div` 2
 					a' = max val a
 alphabeta (GameTree (Black, board) [x]) a b = alphabeta x a b
 alphabeta (GameTree (Black, board) (x:xs)) a b
 				| val <= a = val
 				| otherwise = min val (alphabeta (GameTree (Black, board) xs) a b')
-				where	val = alphabeta x a b
+				where	val = (alphabeta x a b) `div` 2
 					b' = min val b
 
 
@@ -69,8 +69,8 @@ getNextState gs openingBook =
                 if newGs == gs then 
                   case (genGameTree (treeDepth gs) gs) of
                   GameTree p [] -> p
-                  GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(minmax x, state x)) xs))
-                  --GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(alphabeta x alpha beta, state x)) xs))
+                  --GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(minmax x, state x)) xs))
+                  GameTree (f, _) xs -> snd (findBestNextState f (compare f) (map (\x->(alphabeta x alpha beta, state x)) xs))
                   else
                     (fst newGs)
     where newGs = getStateOpenBook gs openingBook
